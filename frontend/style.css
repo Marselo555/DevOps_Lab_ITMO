@@ -1,0 +1,63 @@
+body {
+  margin: 0;
+  background: #f7f7f7;
+  color: #222;
+  font: 16px/1.5 system-ui, sans-serif;
+}
+
+main {
+  max-width: 680px;
+  margin: 40px auto;
+  padding: 0 20px;
+}
+
+form, li {
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 16px;
+}
+
+label {
+  display: block;
+  margin: 8px 0 4px;
+}
+
+input, textarea {
+  box-sizing: border-box;
+  width: 100%;
+  padding: 9px;
+  border: 1px solid #aaa;
+  border-radius: 4px;
+  font: inherit;
+}
+
+.form-actions, .note-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+button {
+  padding: 8px 12px;
+  cursor: pointer;
+}
+
+ul {
+  list-style: none;
+  padding: 0;
+}
+
+li {
+  margin: 10px 0;
+}
+
+li h3 {
+  margin: 0 0 4px;
+}
+
+li p {
+  margin: 0;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}

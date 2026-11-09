@@ -1,0 +1,25 @@
+.env
+.env.*
+!.env.example
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+.DS_Store
+*.log
+*.tmp
+*.swp
+pgdata/
+postgres-data/
+*.db
+*.sqlite*
+*.pem
+*.key
+*.p12
+*.pfx
+*.crt
+*.cer
+.aws/
+.ssh/
+DevOps-лабы-2-курс (2).docx
+drive-download-20261109T224043Z-1-001.zip
