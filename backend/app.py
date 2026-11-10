@@ -8,6 +8,14 @@ from flask import Flask, jsonify, request, send_from_directory
 app = Flask(__name__, static_folder="../frontend", static_url_path="/static")
 
 
+@app.after_request
+def identify_instance(response):
+    instance_id = os.environ.get("INSTANCE_ID")
+    if instance_id:
+        response.headers["X-Instance-ID"] = instance_id
+    return response
+
+
 def db_connection():
     return psycopg2.connect(
         host=os.environ.get("DB_HOST", "127.0.0.1"),
@@ -109,4 +117,7 @@ def init_db():
 
 if __name__ == "__main__":
     init_db()
-    app.run(host="127.0.0.1", port=int(os.environ.get("APP_PORT", "8000")))
+    app.run(
+        host=os.environ.get("APP_HOST", "127.0.0.1"),
+        port=int(os.environ.get("APP_PORT", "8000")),
+    )

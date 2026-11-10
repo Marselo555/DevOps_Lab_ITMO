@@ -23,3 +23,6 @@ postgres-data/
 .ssh/
 DevOps-лабы-2-курс (2).docx
 drive-download-20261109T224043Z-1-001.zip
+.htpasswd
+lab1-nginx/certs/
+lab1-nginx/run/
