@@ -1,4 +1,5 @@
 .git
+.github
 .venv
 .env
 .env.*
@@ -22,5 +23,7 @@ postgres-data
 reports
 lab1-nginx
 frontend
+tests
+requirements-ci.txt
 README.md
 AGENTS.md

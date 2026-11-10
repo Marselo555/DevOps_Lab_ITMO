@@ -7,7 +7,7 @@
 | 0 — свой сервис | `backend/`, `frontend/` | Реализована и проверена локально | [reports/lab0.md](reports/lab0.md) |
 | 1 — Nginx | `lab1-nginx/` | Реализована и проверена локально | [reports/lab1.md](reports/lab1.md) |
 | 2 — Docker | `lab2-docker/` | Реализована и проверена локально | [reports/lab2.md](reports/lab2.md) |
-| 3 — CI/CD | `.github/workflows/` | Не начата | — |
+| 3 — CI/CD | `.github/workflows/` | Подготовлена локально; прогоны GitHub и деплой ожидают настройки runner и разрешения на push | [reports/lab3.md](reports/lab3.md) |
 
 Папки ещё не начатых лабораторных будут созданы только при выполнении соответствующих заданий. Код блокнота остаётся общим.
 
@@ -231,3 +231,44 @@ docker compose --env-file .env -f lab2-docker/compose.yaml stop
 ```
 
 Повторный запуск: `docker compose --env-file .env -f lab2-docker/compose.yaml up -d`. Не используйте `down -v`, если заметки нужно сохранить.
+
+## Лабораторная 3 — CI/CD
+
+В `.github/workflows/` подготовлены ручной плохой workflow и хороший pipeline: Ruff и тест с PostgreSQL → сборка образа для `linux/arm64` → Trivy → GHCR → deploy на self-hosted runner этого Mac → `curl`. В GitHub workflow ещё не запускались; реальные ссылки и результаты будут добавлены в [отчёт](reports/lab3.md) после настройки runner и разрешения на push. Лаборатория 3 пока не подтверждена удалёнными прогонами.
+
+### Локальные проверки
+
+```zsh
+.venv/bin/python -m pip install -r requirements-ci.txt
+.venv/bin/ruff check backend tests
+set -a
+source .env
+set +a
+DB_HOST=127.0.0.1 DB_PORT=55432 .venv/bin/python -m unittest discover -s tests -v
+docker build -f lab2-docker/Dockerfile.good -t devops-lab3-good:local .
+```
+
+Последняя строка собирает только локальный образ для проверки. Рабочий деплой лабораторной 3 должен **скачать опубликованный GHCR-образ**, а не собирать его на Mac. Для повторения скана Trivy через Docker Desktop и таблицы CRITICAL/HIGH используйте команды в отчёте.
+
+### Подготовка GitHub и Mac
+
+1. В приватном репозитории откройте **Settings → Secrets and variables → Actions** и создайте secret `LAB3_CI_DB_PASSWORD` со случайным паролем для одноразовой PostgreSQL в GitHub-hosted тесте. Не присылайте пароль в чат и не записывайте его в файлы проекта.
+2. Откройте **Settings → Actions → Runners → New self-hosted runner**. Выберите **macOS / ARM64** и выполните показанные GitHub команды скачивания, распаковки и `config.sh` на этом Mac под пользователем, у которого работает Docker Desktop. Регистрационный токен берите только на этой странице. Запустите `./run.sh` и дождитесь `Listening for Jobs`; проверьте статус **Idle** в GitHub. Команды и точная версия архива зависят от выдаваемой GitHub страницы.
+3. На Mac должен работать Docker Desktop. Пользователь runner должен читать `/Users/marsel/Desktop/itmo/Cloud/.env`; этот локальный файл уже исключён из Git. Проверьте `docker info` в терминале того же пользователя. Деплой использует отдельный Compose-проект `devops-lab3`, порт `127.0.0.1:8083` и том `devops-lab3_notes_data`.
+4. После отдельного разрешения на push отправьте подготовленные коммиты. В GitHub откройте **Actions** и запустите ручной плохой workflow. Для демонстрации security gate запустите хороший workflow вручную с `scan_bad_image=true`: он должен остановиться на CRITICAL до GHCR и deploy. Ветку с намеренной lint-ошибкой отправляйте отдельно после разрешения; её красный прогон не должен запускать deploy. Исправленный `main` должен завершить весь pipeline и финальный `curl`.
+
+Для проверки локального адреса после настоящего GitHub-deploy:
+
+```zsh
+open http://127.0.0.1:8083/
+curl --noproxy '*' -fsS http://127.0.0.1:8083/api/notes
+docker compose -p devops-lab3 --env-file .env -f lab2-docker/compose.yaml ps
+```
+
+Для безопасной остановки **только** стека лабораторной 3 после демонстрации:
+
+```zsh
+docker compose -p devops-lab3 --env-file .env -f lab2-docker/compose.yaml stop
+```
+
+Не используйте `down -v`: том БД должен сохранять заметки.

@@ -1,12 +1,12 @@
-FROM python:3.11.14-slim-bookworm AS builder
+FROM python:3.11.18-alpine3.23 AS builder
 
 WORKDIR /build
 COPY backend/requirements.txt .
 RUN pip install --no-cache-dir --prefix=/install -r requirements.txt
 
-FROM python:3.11.14-slim-bookworm
+FROM python:3.11.18-alpine3.23
 
-RUN groupadd --system notebook && useradd --system --gid notebook --home-dir /app notebook
+RUN addgroup -S notebook && adduser -S -G notebook -h /app notebook
 WORKDIR /app
 COPY --from=builder /install /usr/local
 COPY backend/app.py .
