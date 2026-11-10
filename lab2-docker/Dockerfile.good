@@ -1,0 +1,19 @@
+FROM python:3.11.14-slim-bookworm AS builder
+
+WORKDIR /build
+COPY backend/requirements.txt .
+RUN pip install --no-cache-dir --prefix=/install -r requirements.txt
+
+FROM python:3.11.14-slim-bookworm
+
+RUN groupadd --system notebook && useradd --system --gid notebook --home-dir /app notebook
+WORKDIR /app
+COPY --from=builder /install /usr/local
+COPY backend/app.py .
+
+ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1
+USER notebook
+EXPOSE 8000
+HEALTHCHECK --interval=10s --timeout=3s --start-period=20s --retries=3 \
+    CMD python -c "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/api/notes', timeout=2)" || exit 1
+CMD ["python", "app.py"]

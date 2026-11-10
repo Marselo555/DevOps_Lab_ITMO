@@ -1,4 +1,5 @@
 import os
+import time
 from contextlib import closing
 
 import psycopg2
@@ -116,7 +117,15 @@ def init_db():
 
 
 if __name__ == "__main__":
-    init_db()
+    retries = int(os.environ.get("DB_STARTUP_RETRIES", "1"))
+    for attempt in range(retries):
+        try:
+            init_db()
+            break
+        except psycopg2.OperationalError:
+            if attempt == retries - 1:
+                raise
+            time.sleep(1)
     app.run(
         host=os.environ.get("APP_HOST", "127.0.0.1"),
         port=int(os.environ.get("APP_PORT", "8000")),

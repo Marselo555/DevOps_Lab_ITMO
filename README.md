@@ -6,7 +6,7 @@
 | --- | --- | --- | --- |
 | 0 — свой сервис | `backend/`, `frontend/` | Реализована и проверена локально | [reports/lab0.md](reports/lab0.md) |
 | 1 — Nginx | `lab1-nginx/` | Реализована и проверена локально | [reports/lab1.md](reports/lab1.md) |
-| 2 — Docker | `lab2-docker/` | Не начата | — |
+| 2 — Docker | `lab2-docker/` | Реализована и проверена локально | [reports/lab2.md](reports/lab2.md) |
 | 3 — CI/CD | `.github/workflows/` | Не начата | — |
 
 Папки ещё не начатых лабораторных будут созданы только при выполнении соответствующих заданий. Код блокнота остаётся общим.
@@ -176,3 +176,58 @@ kill "$(cat lab1-nginx/run/backend-1.pid)" "$(cat lab1-nginx/run/backend-2.pid)"
 ```
 
 Контейнер PostgreSQL и его том при этом остаются на месте. Для повторного запуска выполните `./lab1-nginx/start-backends.sh` и `docker start devops-lab1-nginx`.
+
+## Лабораторная 2 — Docker
+
+Тот же блокнот запускается в отдельном Compose-проекте `devops-lab2`: Nginx раздаёт `frontend/`, Flask из хорошего образа обслуживает `/api`, PostgreSQL хранит заметки в именованном томе `devops-lab2_notes_data`. Порт `127.0.0.1:8082` не конфликтует с лабораторной 1 на 80/443. Нужен запущенный Docker Desktop. Команды выполняются из корня проекта на macOS.
+
+### Подготовка и запуск
+
+Если локального `.env` ещё нет, создайте его по инструкции лабораторной 0 выше. Пароль хранится только в `.env`, который исключён из Git. Соберите оба варианта Flask-образа и поднимите три сервиса:
+
+```zsh
+docker build -f lab2-docker/Dockerfile.bad -t devops-lab2-bad:lab2 .
+docker build -f lab2-docker/Dockerfile.good -t devops-lab2-good:lab2 .
+docker images --format '{{.Repository}}:{{.Tag}} {{.Size}}' | rg '^devops-lab2-(bad|good):lab2 '
+docker compose --env-file .env -f lab2-docker/compose.yaml up -d --build
+docker compose --env-file .env -f lab2-docker/compose.yaml ps
+```
+
+При первом запуске PostgreSQL инициализирует том, а Flask ждёт готовности БД. Дождитесь статуса `healthy` у `devops-lab2-backend-1` в выводе `ps`. Затем откройте блокнот:
+
+```zsh
+open http://127.0.0.1:8082/
+```
+
+### Проверка
+
+```zsh
+curl --noproxy '*' -sS http://127.0.0.1:8082/api/notes
+docker compose --env-file .env -f lab2-docker/compose.yaml exec -T db \
+  psql -U notebook -d notebook -c 'SELECT id, title, content FROM notes ORDER BY id;'
+docker compose --env-file .env -f lab2-docker/compose.yaml exec -T backend whoami
+docker compose --env-file .env -f lab2-docker/compose.yaml exec -T frontend \
+  wget -qO- http://backend:8000/api/notes
+docker compose --env-file .env -f lab2-docker/compose.yaml exec -T frontend \
+  nc -z -w 2 db 5432
+```
+
+Последняя команда должна завершиться ошибкой: frontend подключён только к сети `web`, а БД — только к `data`. Backend подключён к обеим сетям. Для демонстрации сохранности создайте заметку в браузере, остановите и удалите **только контейнер БД этого Compose-проекта**, затем поднимите его снова и проверьте заметку:
+
+```zsh
+docker compose --env-file .env -f lab2-docker/compose.yaml stop db
+docker rm devops-lab2-db-1
+docker compose --env-file .env -f lab2-docker/compose.yaml up -d db
+docker compose --env-file .env -f lab2-docker/compose.yaml exec -T db \
+  psql -U notebook -d notebook -c 'SELECT id, title, content FROM notes ORDER BY id;'
+```
+
+Том `devops-lab2_notes_data` при этом сохраняется. Реальные результаты измерений образов, времени пересборки и сетевой проверки приведены в [отчёте лабораторной 2](reports/lab2.md).
+
+### Безопасная остановка
+
+```zsh
+docker compose --env-file .env -f lab2-docker/compose.yaml stop
+```
+
+Повторный запуск: `docker compose --env-file .env -f lab2-docker/compose.yaml up -d`. Не используйте `down -v`, если заметки нужно сохранить.
