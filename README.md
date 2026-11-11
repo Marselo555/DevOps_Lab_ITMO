@@ -9,6 +9,7 @@
 | 2 — Docker | `lab2-docker/` | Реализована и проверена локально | [reports/lab2.md](reports/lab2.md) |
 | 2★ — устойчивый стек | `lab2-docker/compose.bonus.yaml` | Проверена в отдельном Compose-проекте | [reports/lab2-bonus.md](reports/lab2-bonus.md) |
 | 3 — CI/CD | `.github/workflows/` | Красные и зелёный прогоны GitHub проверены, образ опубликован и развёрнут на Mac | [reports/lab3.md](reports/lab3.md) |
+| 3★ — откат | `lab2-docker/rollback.py` | Сломанный релиз и откат проверены локально | [reports/lab3-bonus.md](reports/lab3-bonus.md) |
 
 Код блокнота общий для всех лабораторных; в отдельных каталогах находятся их конфигурации и проверки.
 
@@ -272,3 +273,14 @@ docker compose -p devops-lab3 --env-file .env -f lab2-docker/compose.yaml stop
 ```
 
 Не используйте `down -v`: том БД должен сохранять заметки.
+
+## Лабораторная 3★ — откат
+
+Для отката проекта `devops-lab3` укажите полный SHA ранее успешно задеплоенного образа, который уже есть на Mac. Проверенный в отчёте запуск:
+
+```zsh
+python3 lab2-docker/rollback.py \
+  ghcr.io/marselo555/devops-lab-itmo-notebook:2f8ca801a2c39e1ff72e9c4e4fae15137baa8ea6
+```
+
+Скрипт возвращает backend и frontend к рабочей версии, не пересоздавая PostgreSQL. Команды и скриншоты демонстрации находятся в [отдельном отчёте 3★](reports/lab3-bonus.md).

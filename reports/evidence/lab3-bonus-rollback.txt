@@ -1,0 +1,19 @@
+Invocation: 2026-11-11T22:50:50.231928+03:00
+$ python3 lab2-docker/rollback.py ghcr.io/marselo555/devops-lab-itmo-notebook:2f8ca801a2c39e1ff72e9c4e4fae15137baa8ea6
+Rollback target: ghcr.io/marselo555/devops-lab-itmo-notebook:2f8ca801a2c39e1ff72e9c4e4fae15137baa8ea6
+Current backend: devops-lab3-broken:demo-20261111
+Recovery time: 1.244 seconds
+Running backend image: ghcr.io/marselo555/devops-lab-itmo-notebook:2f8ca801a2c39e1ff72e9c4e4fae15137baa8ea6
+GET /api/notes: HTTP 200
+[{"content":"Created before the rollback demonstration on 2026-11-11","id":1,"title":"Lab 3 rollback marker"}]
+
+ Container devops-lab3-backend-1 Recreate
+ Container devops-lab3-backend-1 Recreated
+ Container devops-lab3-backend-1 Starting
+ Container devops-lab3-backend-1 Started
+ Container devops-lab3-frontend-1 Recreate
+ Container devops-lab3-frontend-1 Recreated
+ Container devops-lab3-frontend-1 Starting
+ Container devops-lab3-frontend-1 Started
+
+exit=0

@@ -1,0 +1,5 @@
+ARG BASE_IMAGE=ghcr.io/marselo555/devops-lab-itmo-notebook:2f8ca801a2c39e1ff72e9c4e4fae15137baa8ea6
+FROM ${BASE_IMAGE}
+
+# Deliberate startup failure used only for the lab 3 rollback demonstration.
+CMD ["python", "-c", "raise SystemExit('Intentional lab 3 rollback demo failure')"]

@@ -1,0 +1,29 @@
+Captured: 2026-11-11T22:44:58.930884+03:00
+$ docker image inspect ghcr.io/marselo555/devops-lab-itmo-notebook:2f8ca801a2c39e1ff72e9c4e4fae15137baa8ea6 --format {{.Id}} {{.Architecture}}
+sha256:d9cd1ae528c5cb271dad18eb41883230ce47b75a74435d14e80c2f9bf0d22be0 arm64
+
+exit=0
+
+$ docker inspect devops-lab3-backend-1 --format image={{.Config.Image}} id={{.Image}} status={{.State.Status}} health={{.State.Health.Status}}
+image=ghcr.io/marselo555/devops-lab-itmo-notebook:2f8ca801a2c39e1ff72e9c4e4fae15137baa8ea6 id=sha256:d9cd1ae528c5cb271dad18eb41883230ce47b75a74435d14e80c2f9bf0d22be0 status=running health=healthy
+
+exit=0
+
+$ curl --silent --show-error --max-time 5 --write-out
+HTTP %{http_code}
+ http://127.0.0.1:8083/api/notes
+[{"content":"Created before the rollback demonstration on 2026-11-11","id":1,"title":"Lab 3 rollback marker"}]
+
+HTTP 200
+
+exit=0
+
+$ docker exec devops-lab3-db-1 psql -U notebook -d notebook -Atc SELECT id, title, content FROM notes ORDER BY id;
+1|Lab 3 rollback marker|Created before the rollback demonstration on 2026-11-11
+
+exit=0
+
+$ docker inspect devops-lab3-db-1 --format {{range .Mounts}}{{.Name}} {{.Destination}}{{end}}
+devops-lab3_notes_data /var/lib/postgresql/data
+
+exit=0

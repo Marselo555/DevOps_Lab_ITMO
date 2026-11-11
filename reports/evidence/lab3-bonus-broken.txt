@@ -1,0 +1,22 @@
+Repeat captured: 2026-11-11T22:50:27.729984+03:00
+$ docker inspect devops-lab3-backend-1 --format image={{.Config.Image}} id={{.Image}} status={{.State.Status}} exit={{.State.ExitCode}}
+image=devops-lab3-broken:demo-20261111 id=sha256:a9adacfbe7be87a410196880dd8d783648a52c29f42c442487e1c60fbf5e8b4e status=exited exit=1
+
+exit=0
+
+$ docker inspect devops-lab3-frontend-1 --format status={{.State.Status}}
+status=running
+
+exit=0
+
+$ docker logs devops-lab3-backend-1
+
+Intentional lab 3 rollback demo failure
+exit=0
+
+$ curl --silent --show-error --max-time 5 --write-out
+HTTP %{http_code}
+ http://127.0.0.1:8083/api/notes
+HTTP 000
+curl: (28) Operation timed out after 5006 milliseconds with 0 bytes received
+exit=28
