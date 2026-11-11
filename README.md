@@ -1,15 +1,15 @@
 # Блокнот — DevOps-лабораторные 0–3
 
-Один минимальный блокнот используется во всех лабораторных. Страница HTML/CSS/JavaScript из `frontend/` обращается к Flask API из `backend/`, а Flask сохраняет заметки (`id`, `title`, `content`) в отдельной PostgreSQL.
+Во всех четырёх лабораторных используется один блокнот. Страница HTML/CSS/JavaScript из `frontend/` обращается к Flask API из `backend/`. Flask сохраняет заметки с полями `id`, `title` и `content` в PostgreSQL.
 
-| Лабораторная | Где будет конфигурация | Состояние | Отчёт |
+| Лабораторная | Файлы | Состояние | Отчёт |
 | --- | --- | --- | --- |
 | 0 — свой сервис | `backend/`, `frontend/` | Реализована и проверена локально | [reports/lab0.md](reports/lab0.md) |
 | 1 — Nginx | `lab1-nginx/` | Реализована и проверена локально | [reports/lab1.md](reports/lab1.md) |
 | 2 — Docker | `lab2-docker/` | Реализована и проверена локально | [reports/lab2.md](reports/lab2.md) |
 | 3 — CI/CD | `.github/workflows/` | Красные и зелёный прогоны GitHub проверены, образ опубликован и развёрнут на Mac | [reports/lab3.md](reports/lab3.md) |
 
-Папки ещё не начатых лабораторных будут созданы только при выполнении соответствующих заданий. Код блокнота остаётся общим.
+Код блокнота общий для всех лабораторных; в отдельных каталогах находятся их конфигурации и проверки.
 
 ## Лабораторная 0 — свой сервис
 
@@ -166,7 +166,7 @@ curl --noproxy '*' -sk --resolve other.test:443:127.0.0.1 https://other.test/
 ./lab1-nginx/check.sh
 ```
 
-`check.sh` проверяет все обязательные пункты, **временно останавливает только `backend-1`**, проверяет ответы через оставшийся экземпляр и восстанавливает первый. При ошибке он завершается ненулевым кодом и тоже пытается восстановить первый экземпляр. Для просмотра в обычном браузере можно вручную добавить в `/etc/hosts` строку `127.0.0.1 notes.test other.test`; для команд и скрипта это не требуется. Браузер предупредит о самоподписанном сертификате.
+`check.sh` проверяет обязательные настройки. Для проверки отказоустойчивости он **временно останавливает только `backend-1`**, отправляет запросы через оставшийся экземпляр и снова запускает первый. При ошибке скрипт завершается ненулевым кодом и также пытается восстановить `backend-1`. Для просмотра в браузере можно добавить в `/etc/hosts` строку `127.0.0.1 notes.test other.test`; командам `curl` и скрипту это не требуется. Браузер предупредит о самоподписанном сертификате.
 
 ### Остановка
 
@@ -222,7 +222,7 @@ docker compose --env-file .env -f lab2-docker/compose.yaml exec -T db \
   psql -U notebook -d notebook -c 'SELECT id, title, content FROM notes ORDER BY id;'
 ```
 
-Том `devops-lab2_notes_data` при этом сохраняется. Реальные результаты измерений образов, времени пересборки и сетевой проверки приведены в [отчёте лабораторной 2](reports/lab2.md).
+Том `devops-lab2_notes_data` при этом сохраняется. Размеры образов, время пересборки и результаты сетевой проверки приведены в [отчёте лабораторной 2](reports/lab2.md).
 
 ### Безопасная остановка
 
@@ -234,7 +234,7 @@ docker compose --env-file .env -f lab2-docker/compose.yaml stop
 
 ## Лабораторная 3 — CI/CD
 
-В `.github/workflows/` находятся ручной плохой workflow и хороший pipeline: Ruff и тест с PostgreSQL → сборка образа для `linux/arm64` → Trivy → GHCR → deploy на self-hosted runner этого Mac → `curl`. [Зелёный прогон](https://github.com/Marselo555/DevOps_Lab_ITMO/actions/runs/42860700694) опубликовал образ и развернул сервис на Mac; [красный lint-прогон](https://github.com/Marselo555/DevOps_Lab_ITMO/actions/runs/42859654550) и [красный Trivy-прогон](https://github.com/Marselo555/DevOps_Lab_ITMO/actions/runs/42860754501) остановились до деплоя. Вывод, таблица проверок и настоящие скриншоты — в [отчёте](reports/lab3.md).
+В `.github/workflows/` находятся два workflow: учебный «плохой» запускается вручную, «хороший» проверяет Ruff и CRUD-тест с PostgreSQL, собирает образ для `linux/arm64`, сканирует его Trivy, публикует в GHCR и развёртывает на Mac через self-hosted runner. Последний шаг выполняет `curl`. [Успешный прогон](https://github.com/Marselo555/DevOps_Lab_ITMO/actions/runs/42860700694) опубликовал образ и развернул сервис; [прогон с ошибкой lint](https://github.com/Marselo555/DevOps_Lab_ITMO/actions/runs/42859654550) и [прогон с CRITICAL CVE](https://github.com/Marselo555/DevOps_Lab_ITMO/actions/runs/42860754501) остановились до деплоя. Вывод команд, таблица проверок и скриншоты находятся в [отчёте](reports/lab3.md).
 
 ### Локальные проверки
 
@@ -256,7 +256,7 @@ GitHub secret `LAB3_CI_DB_PASSWORD` и Mac runner `macbook-devops` уже нас
 
 Ручной плохой workflow запускается через **Actions → Lab 3 bad pipeline demo → Run workflow**. Для повторения security gate запустите **Lab 3 CI/CD → Run workflow** с `scan_bad_image=true`. Обычный push в `main` запускает полный pipeline; рабочий образ публикуется в GHCR с тегом полного SHA коммита. Секреты не пересылайте в чат и не записывайте в репозиторий.
 
-Для проверки локального адреса после настоящего GitHub-deploy:
+После деплоя проверьте приложение на Mac:
 
 ```zsh
 open http://127.0.0.1:8083/
