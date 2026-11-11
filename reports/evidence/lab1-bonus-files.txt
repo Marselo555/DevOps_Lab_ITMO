@@ -1,0 +1,21 @@
+$ curl --silent --show-error --max-time 15 --retry 0 --head https://1001goroskop.ru/.env
+UTC: 2026-11-11T20:18:03+00:00
+
+stderr: curl: (92) HTTP/2 stream 1 was not closed cleanly: PROTOCOL_ERROR (err 1)
+exit code: 92
+
+$ curl --silent --show-error --max-time 15 --retry 0 --head https://1001goroskop.ru/.git/config
+UTC: 2026-11-11T20:18:04+00:00
+
+stderr: curl: (92) HTTP/2 stream 1 was not closed cleanly: PROTOCOL_ERROR (err 1)
+exit code: 92
+
+$ curl --http1.1 --silent --show-error --max-time 15 --retry 0 --head https://1001goroskop.ru/.env
+UTC: 2026-11-11T20:18:25+00:00
+stderr: curl: (56) LibreSSL SSL_read: LibreSSL/3.3.6: error:06FFF064:digital envelope routines:CRYPTO_internal:bad decrypt, errno 0
+exit code: 56
+
+$ curl --http1.1 --silent --show-error --max-time 15 --retry 0 --head https://1001goroskop.ru/.git/config
+UTC: 2026-11-11T20:18:29+00:00
+stderr: curl: (56) LibreSSL SSL_read: LibreSSL/3.3.6: error:06FFF064:digital envelope routines:CRYPTO_internal:bad decrypt, errno 0
+exit code: 56

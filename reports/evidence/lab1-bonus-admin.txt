@@ -1,0 +1,19 @@
+$ curl --silent --show-error --max-time 15 --retry 0 --head https://1001goroskop.ru/admin
+UTC: 2026-11-11T20:18:06+00:00
+HTTP/2 404
+server: nginx
+date: Wed, 11 Nov 2026 20:18:06 GMT
+content-type: text/html
+content-length: 50837
+etag: "6a86ce3d-c695"
+exit code: 0
+
+$ curl --silent --show-error --max-time 15 --retry 0 --head https://1001goroskop.ru/administrator
+UTC: 2026-11-11T20:18:07+00:00
+HTTP/2 404
+server: nginx
+date: Wed, 11 Nov 2026 20:18:08 GMT
+content-type: text/html
+content-length: 50837
+etag: "6a86ce3d-c695"
+exit code: 0
