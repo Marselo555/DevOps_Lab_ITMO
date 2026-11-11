@@ -1,0 +1,24 @@
+UTC start: 2026-11-11T19:10:34Z
+Backend 20 MiB, healthy before request; one 8 MiB JSON POST, blank title so no note is saved
+health=healthy restart_count=0 memory_bytes=20971520
+memory.events before:
+low 0
+high 0
+max 207
+oom 0
+oom_kill 0
+oom_group_kill 0
+sock_throttled 12
+HTTP POST status= 413
+request bytes= 8388636
+Backend after request: status=running health=healthy restart_count=0 oom_killed=false
+memory.events after (if available):
+low 0
+high 0
+max 207
+oom 0
+oom_kill 0
+oom_group_kill 0
+sock_throttled 12
+Docker OOM/die/start events:
+UTC end: 2026-11-11T19:10:38Z

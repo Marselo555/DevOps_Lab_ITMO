@@ -1,0 +1,30 @@
+UTC captured: 2026-11-11T19:07:19Z
+Compose up --wait at 16 MiB failed: dependency backend failed to start; container was unhealthy.
+backend status=running health=starting restart_count=8 oom_killed=false memory_bytes=16777216
+Docker events after 19:06 UTC:
+1794423968 die
+1794423968 start
+1794423973 oom
+1794423973 die
+1794423973 start
+1794423978 oom
+1794423979 die
+1794423979 start
+1794423984 oom
+1794423984 die
+1794423984 start
+1794423990 oom
+1794423990 die
+1794423990 start
+1794423996 oom
+1794423996 die
+1794423997 start
+1794424002 oom
+1794424003 die
+1794424006 start
+1794424011 oom
+1794424011 die
+1794424017 start
+1794424023 oom
+1794424023 die
+1794424036 start

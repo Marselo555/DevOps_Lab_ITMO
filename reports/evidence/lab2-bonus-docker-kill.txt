@@ -1,0 +1,14 @@
+UTC start: 2026-11-11T18:56:50Z
+Project: devops-lab2-bonus; port: 8084
+Before kill:
+db pid=59579 restart_count=0 health=healthy restart_policy=unless-stopped
+backend health=healthy
+frontend health=healthy
+frontend HTTP 200
+[{"content":"\u0417\u0430\u043f\u0438\u0441\u0430\u043d\u043e \u0434\u043e \u0430\u0432\u0430\u0440\u0438\u0439\u043d\u043e\u0433\u043e \u0437\u0430\u0432\u0435\u0440\u0448\u0435\u043d\u0438\u044f PostgreSQL","id":1,"title":"\u041b\u0430\u0431\u0430 2\u2605: \u0441\u043e\u0445\u0440\u0430\u043d\u043d\u043e\u0441\u0442\u044c"}]
+
+API before HTTP 200
+Crash simulation: docker kill devops-lab2-bonus-db-1
+devops-lab2-bonus-db-1
+DB PID before=59579 after=0; restart_count before=0 after=0
+Error response from daemon: container 67dc1c682bb94cf3d10588f671a1bed7406cc6158d035278d70d8bcc75a7f8b8 is not running

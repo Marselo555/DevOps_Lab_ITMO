@@ -1,0 +1,27 @@
+UTC start: 2026-11-11T19:15:45Z
+Backend 20 MiB and healthy; one direct 8 MiB JSON POST from temporary client container (0.5 CPU, 64 MiB)
+before health=healthy restart_count=2 memory_bytes=20971520
+memory.events before:
+low 0
+high 0
+max 208
+oom 0
+oom_kill 0
+oom_group_kill 0
+sock_throttled 10
+direct HTTP POST error= RemoteDisconnected Remote end closed connection without response
+request bytes= 8388636
+Backend after request: status=running health=starting restart_count=3 oom_killed=false
+memory.events after:
+low 0
+high 0
+max 74
+oom 0
+oom_kill 0
+oom_group_kill 0
+sock_throttled 1
+Docker OOM/die/start events:
+1794424546 oom
+1794424546 die
+1794424547 start
+UTC end: 2026-11-11T19:15:50Z

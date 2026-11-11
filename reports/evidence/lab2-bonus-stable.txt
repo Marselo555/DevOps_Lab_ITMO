@@ -1,0 +1,28 @@
+UTC start: 2026-11-11T19:09:23Z
+frontend cpu_nano=500000000 memory_bytes=67108864 health=healthy restart_policy=unless-stopped
+backend cpu_nano=1000000000 memory_bytes=134217728 health=healthy restart_policy=unless-stopped
+db cpu_nano=500000000 memory_bytes=268435456 health=healthy restart_policy=unless-stopped
+Bounded load: 8 workers, max 1200 GET, max 15 s
+docker stats sample 1:
+devops-lab2-bonus-frontend-1 CPU=3.29% MEM=8.863MiB / 64MiB PIDs=9
+devops-lab2-bonus-backend-1 CPU=99.80% MEM=25.74MiB / 128MiB PIDs=9
+devops-lab2-bonus-db-1 CPU=20.11% MEM=25.56MiB / 256MiB PIDs=13
+docker stats sample 2:
+devops-lab2-bonus-frontend-1 CPU=1.01% MEM=9.176MiB / 64MiB PIDs=9
+devops-lab2-bonus-backend-1 CPU=100.20% MEM=25.61MiB / 128MiB PIDs=8
+devops-lab2-bonus-db-1 CPU=17.52% MEM=25.86MiB / 256MiB PIDs=13
+docker stats sample 3:
+devops-lab2-bonus-frontend-1 CPU=1.09% MEM=8.723MiB / 64MiB PIDs=9
+devops-lab2-bonus-backend-1 CPU=100.85% MEM=26.02MiB / 128MiB PIDs=8
+devops-lab2-bonus-db-1 CPU=19.36% MEM=26.25MiB / 256MiB PIDs=13
+bounded load: workers=8, max_requests=1200, deadline=15s; ok=560, errors=0, elapsed=15.13s
+frontend after health=healthy restart_count=0
+backend after health=healthy restart_count=0
+db after health=healthy restart_count=1
+bonus frontend HTTP 200
+[{"content":"\u0417\u0430\u043f\u0438\u0441\u0430\u043d\u043e \u0434\u043e \u0430\u0432\u0430\u0440\u0438\u0439\u043d\u043e\u0433\u043e \u0437\u0430\u0432\u0435\u0440\u0448\u0435\u043d\u0438\u044f PostgreSQL","id":1,"title":"\u041b\u0430\u0431\u0430 2\u2605: \u0441\u043e\u0445\u0440\u0430\u043d\u043d\u043e\u0441\u0442\u044c"}]
+
+bonus API HTTP 200
+original lab2 API HTTP 200
+lab3 deploy API HTTP 200
+UTC end: 2026-11-11T19:09:39Z

@@ -1,0 +1,36 @@
+services:
+  frontend:
+    restart: unless-stopped
+    depends_on:
+      backend:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1/"]
+      interval: 5s
+      timeout: 3s
+      retries: 3
+    cpus: 0.5
+    mem_limit: 64m
+
+  backend:
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/api/notes', timeout=2)"]
+      interval: 5s
+      timeout: 3s
+      retries: 3
+    cpus: ${BONUS_BACKEND_CPUS:-1.0}
+    mem_limit: ${BONUS_BACKEND_MEM_LIMIT:-128m}
+
+  db:
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U \"$${POSTGRES_USER}\" -d \"$${POSTGRES_DB}\""]
+      interval: 5s
+      timeout: 3s
+      retries: 6
+    cpus: 0.5
+    mem_limit: 256m

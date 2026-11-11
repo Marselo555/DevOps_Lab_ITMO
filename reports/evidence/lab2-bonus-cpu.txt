@@ -1,0 +1,31 @@
+UTC start: 2026-11-11T19:03:26Z
+Backend constrained to 0.2 CPU and 128 MiB; load: 4 workers, max 600 GET, max 15 s
+configured NanoCpus=200000000 memory_bytes=134217728 health=healthy
+cpu.max: 20000 100000
+cpu.stat before:
+usage_usec 3930362
+user_usec 3010194
+system_usec 920168
+nice_usec 0
+nr_periods 226
+nr_throttled 190
+throttled_usec 14637822
+nr_bursts 0
+burst_usec 0
+docker stats sample 1: devops-lab2-bonus-backend-1 CPU=20.41% MEM=25.19MiB / 128MiB PIDs=5
+docker stats sample 2: devops-lab2-bonus-backend-1 CPU=20.93% MEM=29.89MiB / 128MiB PIDs=6
+docker stats sample 3: devops-lab2-bonus-backend-1 CPU=19.52% MEM=25.56MiB / 128MiB PIDs=5
+docker stats sample 4: devops-lab2-bonus-backend-1 CPU=19.42% MEM=28.7MiB / 128MiB PIDs=9
+bounded load: workers=4, max_requests=600, deadline=15s; ok=161, errors=0, elapsed=15.16s
+cpu.stat after:
+usage_usec 6992974
+user_usec 5474782
+system_usec 1518191
+nice_usec 0
+nr_periods 380
+nr_throttled 343
+throttled_usec 67145402
+nr_bursts 0
+burst_usec 0
+Backend health after: healthy
+UTC end: 2026-11-11T19:03:42Z

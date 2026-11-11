@@ -1,0 +1,19 @@
+UTC final: 2026-11-11T19:14:08Z
+frontend health=healthy cpu_nano=500000000 memory_bytes=67108864 restart_policy=unless-stopped
+backend health=healthy cpu_nano=1000000000 memory_bytes=134217728 restart_policy=unless-stopped
+db health=healthy cpu_nano=500000000 memory_bytes=268435456 restart_policy=unless-stopped
+port 8084 API HTTP 200
+port 8082 API HTTP 200
+port 8083 API HTTP 200
+bonus note IDs= [1]
+Final config and note check: PASS
+
+UTC final after direct OOM test: 2026-11-11T19:16:25Z
+frontend health=healthy cpu_nano=500000000 memory_bytes=67108864
+backend health=healthy cpu_nano=1000000000 memory_bytes=134217728
+db health=healthy cpu_nano=500000000 memory_bytes=268435456
+port 8084 API HTTP 200
+port 8082 API HTTP 200
+port 8083 API HTTP 200
+bonus note IDs= [1]
+Final config and note check after OOM: PASS

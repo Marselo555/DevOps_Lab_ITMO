@@ -1,0 +1,34 @@
+UTC verification: 2026-11-11T19:01:16Z
+Crash command already executed: docker exec -u root devops-lab2-bonus-db-1 sh -c "kill -QUIT 1"
+Previous DB PID=62062, restart_count=0 (see lab2-bonus-docker-kill.txt and prior inspection)
+All healthy on poll 1
+db status=running pid=64323 restart_count=1 health=healthy
+backend status=running pid=59754 restart_count=0 health=healthy
+frontend status=running pid=59853 restart_count=0 health=healthy
+/var/run/postgresql:5432 - accepting connections
+frontend HTTP 200
+[{"content":"\u0417\u0430\u043f\u0438\u0441\u0430\u043d\u043e \u0434\u043e \u0430\u0432\u0430\u0440\u0438\u0439\u043d\u043e\u0433\u043e \u0437\u0430\u0432\u0435\u0440\u0448\u0435\u043d\u0438\u044f PostgreSQL","id":1,"title":"\u041b\u0430\u0431\u0430 2\u2605: \u0441\u043e\u0445\u0440\u0430\u043d\u043d\u043e\u0441\u0442\u044c"}]
+
+API HTTP 200
+Recent PostgreSQL log (last 20 lines):
+2026-11-11 18:58:29.656 UTC [28] LOG:  checkpoint starting: end-of-recovery immediate wait
+2026-11-11 18:58:29.667 UTC [28] LOG:  checkpoint complete: wrote 85 buffers (0.5%); 0 WAL file(s) added, 0 removed, 0 recycled; write=0.004 s, sync=0.005 s, total=0.011 s; sync files=49, longest=0.004 s, average=0.001 s; distance=403 kB, estimate=403 kB; lsn=0/1983CE8, redo lsn=0/1983CE8
+2026-11-11 18:58:29.668 UTC [1] LOG:  database system is ready to accept connections
+2026-11-11 19:00:44.747 UTC [1] LOG:  received immediate shutdown request
+2026-11-11 19:00:44.760 UTC [1] LOG:  database system is shut down
+
+PostgreSQL Database directory appears to contain a database; Skipping initialization
+
+2026-11-11 19:00:45.052 UTC [1] LOG:  starting PostgreSQL 16.13 (Debian 16.13-1.pgdg13+1) on aarch64-unknown-linux-gnu, compiled by gcc (Debian 14.2.0-19) 14.2.0, 64-bit
+2026-11-11 19:00:45.052 UTC [1] LOG:  listening on IPv4 address "0.0.0.0", port 5432
+2026-11-11 19:00:45.052 UTC [1] LOG:  listening on IPv6 address "::", port 5432
+2026-11-11 19:00:45.053 UTC [1] LOG:  listening on Unix socket "/var/run/postgresql/.s.PGSQL.5432"
+2026-11-11 19:00:45.055 UTC [30] LOG:  database system was interrupted; last known up at 2026-11-11 18:58:29 UTC
+2026-11-11 19:00:45.150 UTC [30] LOG:  database system was not properly shut down; automatic recovery in progress
+2026-11-11 19:00:45.151 UTC [30] LOG:  redo starts at 0/1983D60
+2026-11-11 19:00:45.151 UTC [30] LOG:  invalid record length at 0/1983D98: expected at least 24, got 0
+2026-11-11 19:00:45.151 UTC [30] LOG:  redo done at 0/1983D60 system usage: CPU: user: 0.00 s, system: 0.00 s, elapsed: 0.00 s
+2026-11-11 19:00:45.152 UTC [28] LOG:  checkpoint starting: end-of-recovery immediate wait
+2026-11-11 19:00:45.156 UTC [28] LOG:  checkpoint complete: wrote 3 buffers (0.0%); 0 WAL file(s) added, 0 removed, 0 recycled; write=0.001 s, sync=0.002 s, total=0.005 s; sync files=2, longest=0.001 s, average=0.001 s; distance=0 kB, estimate=0 kB; lsn=0/1983D98, redo lsn=0/1983D98
+2026-11-11 19:00:45.158 UTC [1] LOG:  database system is ready to accept connections
+UTC end: 2026-11-11T19:01:16Z

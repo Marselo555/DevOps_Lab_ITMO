@@ -1,0 +1,40 @@
+UTC start: 2026-11-11T19:04:41Z
+Backend constrained to 1 CPU and 32 MiB; load: 8 workers, max 1200 GET, max 15 s
+configured NanoCpus=1000000000 memory_bytes=33554432 health=healthy restart_count=0
+memory.max: 33554432
+memory.events before:
+low 0
+high 0
+max 33
+oom 0
+oom_kill 0
+oom_group_kill 0
+sock_throttled 4
+docker stats sample 1: devops-lab2-bonus-backend-1 CPU=99.93% MEM=20.41MiB / 32MiB PIDs=8
+docker stats sample 2: devops-lab2-bonus-backend-1 CPU=100.15% MEM=19.38MiB / 32MiB PIDs=9
+docker stats sample 3: devops-lab2-bonus-backend-1 CPU=96.86% MEM=19.74MiB / 32MiB PIDs=9
+docker stats sample 4: devops-lab2-bonus-backend-1 CPU=103.37% MEM=29.49MiB / 32MiB PIDs=11
+bounded load: workers=8, max_requests=1200, deadline=15s; ok=553, errors=0, elapsed=15.03s
+Container after load: status=running health=healthy restart_count=0 oom_killed=false
+memory.events after (if running):
+low 0
+high 0
+max 39
+oom 0
+oom_kill 0
+oom_group_kill 0
+sock_throttled 74
+Docker events from 2026-11-11T19:04:41Z to 2026-11-11T19:04:56Z:
+1794423881 exec_create: cat /sys/fs/cgroup/memory.max
+1794423881 exec_start: cat /sys/fs/cgroup/memory.max
+1794423881 exec_die
+1794423881 exec_create: cat /sys/fs/cgroup/memory.events
+1794423881 exec_start: cat /sys/fs/cgroup/memory.events
+1794423881 exec_die
+1794423883 exec_create: python -c import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/api/notes', timeout=2)
+1794423883 exec_start: python -c import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/api/notes', timeout=2)
+1794423885 exec_die
+1794423890 exec_create: python -c import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/api/notes', timeout=2)
+1794423890 exec_start: python -c import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/api/notes', timeout=2)
+1794423893 exec_die
+UTC end: 2026-11-11T19:04:56Z
