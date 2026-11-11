@@ -1,26 +1,18 @@
 # Лабораторная 3 — CI/CD
 
-## Цель и результат
+## От ошибки до деплоя
 
-Цель работы — настроить CI/CD для блокнота из лабораторной 0. Код с ошибкой и образ с CRITICAL CVE должны останавливаться до деплоя. Исправленная версия должна пройти `Lint/Test → Docker Build → Trivy Scan → Push → Deploy → Health Check`. Откат выполнен отдельно и описан в [отчёте 3★](lab3-bonus.md).
+Для блокнота из лабораторной 0 я настроил цепочку `Lint/Test → Docker Build → Trivy Scan → Push → Deploy → Health Check`. Её проверяли реальные ошибки: Ruff остановил код с неопределённым именем, Trivy в отдельном ручном прогоне заблокировал образ с CRITICAL CVE. Исправленный `main` прошёл все стадии и запустил сервис на Mac. Ручную проверку уязвимого образа я провёл позже успешного прогона `main`; это отдельный опыт с security gate. Откат деплоя разобран в [отчёте 3★](lab3-bonus.md).
 
-Проверки проведены 10 ноября 2026 года на Mac с архитектурой `arm64` и Docker Desktop Engine 29.9.3. Для деплоя использован self-hosted runner `macbook-devops` (macOS, ARM64). Данные лабораторных 0–2 не удалялись; после деплоя API лабораторной 2 по-прежнему отвечал HTTP 200.
+Прогоны выполнены 10 ноября 2026 года. Целевой хост — Mac с архитектурой `arm64` и Docker Desktop Engine 29.9.3; на нём работает self-hosted runner `macbook-devops` (macOS, ARM64). После деплоя API лабораторной 2 по-прежнему отвечал HTTP 200.
 
-| Прогон GitHub Actions | Результат |
-| --- | --- |
-| [Код с ошибкой, коммит `9d618a7`](https://github.com/Marselo555/DevOps_Lab_ITMO/actions/runs/42859654550) | Ошибка Ruff `F821`; сборка и деплой пропущены |
-| [Исправленная демонстрационная ветка, коммит `b8afe18`](https://github.com/Marselo555/DevOps_Lab_ITMO/actions/runs/42860991565) | Lint, тесты, сборка и Trivy прошли; публикация и деплой для этой ветки отключены |
-| [Уязвимый образ, `scan_bad_image=true`](https://github.com/Marselo555/DevOps_Lab_ITMO/actions/runs/42860754501) | 15 CRITICAL; публикация в GHCR и деплой пропущены |
-| [Исправленный `main`, коммит `2d3cdaa`](https://github.com/Marselo555/DevOps_Lab_ITMO/actions/runs/42860700694) | Все три задания прошли; образ опубликован в GHCR и развёрнут на Mac, финальный `curl` успешен |
-| [Ручной плохой pipeline](https://github.com/Marselo555/DevOps_Lab_ITMO/actions/runs/42860748214) | Образ собран без lint, тестов и Trivy |
-
-Первый запуск `main` для коммита `fbd8559` [завершился ошибкой](https://github.com/Marselo555/DevOps_Lab_ITMO/actions/runs/42859626377): lint прошёл, но тест получил `password authentication failed`. В CI secret оказался завершающий перевод строки. При инициализации официальный образ PostgreSQL использовал первую строку пароля. Проверка во временной Docker-сети повторила ошибку: пароль с переводом строки не прошёл TCP-аутентификацию, без него — прошёл. Коммит `2d3cdaa` убирает завершающие CR/LF только из переменной окружения тестового процесса; пароль в лог не выводится. Следующий прогон прошёл.
+Ниже сначала показаны оба workflow, затем — проверки Ruff и Trivy и результат деплоя. Успешный прогон `main` и ручной security-run имеют собственные ссылки и даты запуска в GitHub Actions; их выводы не объединены в один прогон. Сбой тестовой БД при первом запуске `main` тоже сохранён: он объясняет дополнительное исправление перед зелёным прогоном.
 
 ## Workflow и исправленные практики
 
 ### Плохой: `.github/workflows/lab3-bad.yml`
 
-Этот workflow запускается только вручную (`workflow_dispatch`). Он собирает образ, но не публикует его. [Прогон 42860748214](https://github.com/Marselo555/DevOps_Lab_ITMO/actions/runs/42860748214) завершился успешно.
+Для сравнения я сделал ручной workflow без проверок качества и безопасности. Он собирает образ, но не публикует его. [Прогон 42860748214](https://github.com/Marselo555/DevOps_Lab_ITMO/actions/runs/42860748214) завершился успешно — именно это и опасно: сборка сама по себе ещё не говорит, что код и образ годятся для деплоя.
 
 ```yaml
 name: Lab 3 bad pipeline demo
@@ -51,7 +43,7 @@ jobs:
 
 ### Хороший: `.github/workflows/lab3-ci-cd.yml`
 
-Используемые GitHub Actions закреплены полными SHA. Версии образов указаны тегами: хороший Dockerfile использует `python:3.11.18-alpine3.23`, CI PostgreSQL — `postgres:16.13-alpine`, Compose — `nginx:1.28-alpine` и `postgres:16`. Это фиксирует выбранные версии или ветки версий по формулировке задания, но Docker-теги могут быть перезаписаны, а `postgres:16` допускает обновления внутри 16-й версии. Для побайтово воспроизводимой сборки нужны digest `@sha256` у базовых и сервисных образов; сейчас такой гарантии нет. Права заданы для каждого задания: `contents: read`, `packages: write` только при публикации и `packages: read` при деплое. Для GHCR используется `GITHUB_TOKEN`. Пароль временной БД хранится в GitHub secret `LAB3_CI_DB_PASSWORD`, пароль локальной БД — в файле `.env`, исключённом из Git.
+В рабочем workflow проверка предшествует сборке, сканирование — публикации, публикация — деплою. Используемые GitHub Actions закреплены полными SHA. Теги образов задают выбранные версии: `python:3.11.18-alpine3.23` для хорошего Dockerfile, `postgres:16.13-alpine` для CI, `nginx:1.28-alpine` и `postgres:16` для Compose. Docker-тег может быть перезаписан, а `postgres:16` допускает обновления в рамках 16-й версии; побайтовой воспроизводимости без digest `@sha256` здесь нет. Права выделены по заданиям: `contents: read`, `packages: write` только для публикации и `packages: read` для деплоя. GHCR использует `GITHUB_TOKEN`; пароль тестовой БД хранится в GitHub secret `LAB3_CI_DB_PASSWORD`, локальной — в исключённом из Git `.env`.
 
 ```yaml
 name: Lab 3 CI/CD
@@ -216,11 +208,11 @@ jobs:
           printf 'GET /api/notes HTTP 200\n%s\n' "$response"
 ```
 
-Образ для `linux/arm64` собирается и сканируется на GitHub-hosted Ubuntu. На Mac runner работают `checkout` и команды shell/Docker CLI через Docker Desktop; service containers и container actions на нём не запускаются. Задание `build_scan_push` начинается после `lint_test`, а `deploy` — после `build_scan_push`. Публикация и деплой разрешены только для `main`. Ручной запуск с `scan_bad_image=true` проверяет плохой Dockerfile до публикации. Compose запускает скачанный из GHCR образ с тегом по полному SHA и флагом `--no-build`. PostgreSQL использует отдельный именованный том `devops-lab3_notes_data`; `down -v` не выполняется.
+Образ для `linux/arm64` собирается и сканируется на GitHub-hosted Ubuntu. На Mac runner выполняются `checkout` и shell/Docker CLI через Docker Desktop. Зависимости заданий не позволяют начать `build_scan_push` до `lint_test`, а `deploy` — до `build_scan_push`. Публикация и деплой включаются только для `main`; ручной `scan_bad_image=true` отправляет на скан плохой Dockerfile. Compose на Mac запускает скачанный из GHCR образ с тегом по полному SHA и `--no-build`. PostgreSQL хранит данные в отдельном томе `devops-lab3_notes_data`.
 
-`LAB3_ENV_FILE=/Users/marsel/Desktop/itmo/Cloud/.env` относится только к локальному self-hosted runner на этом Mac. Файл с паролем существует вне временного каталога `checkout` и исключён из Git; GitHub-hosted задания по этому пути не обращаются. Абсолютный путь привязывает deploy к этому Mac и его рабочей папке, но не является секретом. Для переноса runner на другую машину путь нужно задать в окружении нового runner и удалить значение по умолчанию из YAML; текущий рабочий deploy ради этого не менялся.
+`LAB3_ENV_FILE=/Users/marsel/Desktop/itmo/Cloud/.env` указывает на локальный файл self-hosted runner, вне временного каталога `checkout`. GitHub-hosted задания этот путь не используют. Сам путь привязывает деплой к рабочей папке данного Mac; при переносе runner его придётся изменить.
 
-Оба YAML прошли `actionlint:1.7.12` с кодом 0. Локальная команда `.venv/bin/ruff check backend tests` вернула `All checks passed!`; CRUD-тест с PostgreSQL лабораторной 0 завершился `Ran 1 test ... OK`. Результаты запусков в GitHub приведены выше.
+Оба YAML прошли `actionlint:1.7.12` с кодом 0. Локально `.venv/bin/ruff check backend tests` вернул `All checks passed!`, а CRUD-тест с PostgreSQL лабораторной 0 завершился `Ran 1 test ... OK`. Дальше я проверил, как эти стадии ведут себя в GitHub Actions на намеренно плохих вариантах.
 
 ## Плохой код и блокировка деплоя
 
@@ -232,7 +224,11 @@ Found 1 error.
 Process completed with exit code 1.
 ```
 
-`lint_test` завершился со статусом failure; `build_scan_push` и `deploy` были пропущены. Ошибку исправили отдельным коммитом `b8afe18`. В `main` намеренно сломанного кода не было. [Повторный прогон ветки](https://github.com/Marselo555/DevOps_Lab_ITMO/actions/runs/42860991565) завершился со статусом success: lint, CRUD-тест и Trivy прошли. Публикация и деплой для демонстрационной ветки по условию workflow остались пропущенными.
+`lint_test` завершился со статусом failure; `build_scan_push` и `deploy` были пропущены. Ошибка не доехала до контейнера. Её исправили отдельным коммитом `b8afe18`; в `main` намеренно сломанного кода не было. [Повторный прогон ветки](https://github.com/Marselo555/DevOps_Lab_ITMO/actions/runs/42860991565) завершился со статусом success: lint, CRUD-тест и Trivy прошли. Публикация и деплой для демонстрационной ветки по условию workflow остались пропущенными.
+
+![Красный GitHub Actions run с lint-ошибкой](screenshots/lab3-lint-red.png)
+
+Первый запуск `main` для коммита `fbd8559` [тоже завершился ошибкой](https://github.com/Marselo555/DevOps_Lab_ITMO/actions/runs/42859626377), но уже по другой причине: lint прошёл, а тест получил `password authentication failed`. В CI secret оказался завершающий перевод строки. При инициализации официальный образ PostgreSQL использовал первую строку пароля. Проверка во временной Docker-сети воспроизвела сбой: пароль с переводом строки не прошёл TCP-аутентификацию, без него — прошёл. Коммит `2d3cdaa` убирает завершающие CR/LF только из переменной окружения тестового процесса, не выводя пароль в лог. Следующий прогон прошёл.
 
 ## Trivy: до и после
 
@@ -245,7 +241,7 @@ Trivy `v0.76.1` запускался со сканером `vuln` и уровн�
 
 В плохом образе Trivy обнаружил, в частности, `CVE-2026-44172` в MariaDB, `CVE-2026-42216` в OpenEXR, `CVE-2026-6653` в libxml2 и `CVE-2026-60002` в OpenSSH. Эти системные пакеты входят в тяжёлый базовый образ и не нужны блокноту. Хороший multi-stage образ собран на свежем Alpine; перечисленных CRITICAL в нём нет. Две оставшиеся HIGH относятся к `jaraco.context 5.3.0` (`CVE-2026-23949`) и `wheel 0.45.1` (`CVE-2026-24049`) из Python-образа. По условию задания gate блокирует CRITICAL, а HIGH остаются видны в журнале. Уязвимости не скрывались через ignore-файлы Trivy; gate не обходили.
 
-В [красном security-run](https://github.com/Marselo555/DevOps_Lab_ITMO/actions/runs/42860754501) журнал содержит:
+Позже успешного прогона `main` я вручную запустил [security-run с уязвимым образом](https://github.com/Marselo555/DevOps_Lab_ITMO/actions/runs/42860754501). В его журнале:
 
 ```text
 Total: 388 (HIGH: 373, CRITICAL: 15)
@@ -253,11 +249,15 @@ Total: 15 (CRITICAL: 15)
 Process completed with exit code 1.
 ```
 
-Шаги `Login to GHCR` и `Publish checked image`, а также задание `deploy` были пропущены. В успешном прогоне журнал Trivy содержит `Total: 2 (HIGH: 2, CRITICAL: 0)`; проверка на CRITICAL прошла. База Trivy обновляется, поэтому workflow сканирует образ перед каждой публикацией.
+Шаги `Login to GHCR` и `Publish checked image`, а также задание `deploy` были пропущены. В отдельном успешном прогоне `main` журнал Trivy содержит `Total: 2 (HIGH: 2, CRITICAL: 0)`; проверка на CRITICAL прошла. Security gate сработал буквально: образ с 15 CRITICAL остановился до GHCR. База Trivy обновляется, поэтому workflow сканирует образ перед каждой публикацией.
+
+![Красный GitHub Actions run с блокировкой Trivy](screenshots/lab3-trivy-red.png)
+
+Подпись к снимку: у Trivy строгий фейс-контроль — образ с 15 CRITICAL до GHCR не дошёл.
 
 ## GHCR, Mac deploy и финальный curl
 
-[Прогон 42860700694](https://github.com/Marselo555/DevOps_Lab_ITMO/actions/runs/42860700694) завершился со статусом success во всех трёх заданиях: `lint_test`, `build_scan_push` и `deploy`. В журнале публикации образа:
+[Прогон 42860700694](https://github.com/Marselo555/DevOps_Lab_ITMO/actions/runs/42860700694) исправленного `main` завершился со статусом success во всех трёх заданиях: `lint_test`, `build_scan_push` и `deploy`. Он произошёл до отдельного ручного сканирования плохого образа, описанного выше. В журнале публикации:
 
 ```text
 2d3cdaa3362f2f6d6e10fbd431bc60610776ca09: digest: sha256:b6311e5e8ffde984010a38411ae819e61575fa4166a84cd8f29855b2b5710b68 size: 1989
@@ -272,7 +272,9 @@ GET /api/notes HTTP 200
 []
 ```
 
-На Mac команда `curl --fail --silent --show-error http://127.0.0.1:8083/api/notes` также вывела `[]`. Команда `docker compose -p devops-lab3 --env-file .env -f lab2-docker/compose.yaml ps` показала три запущенных сервиса: frontend, backend и db. Страница доступна на `http://127.0.0.1:8083/`; пустой список означает, что в отдельной базе лабораторной 3 ещё нет заметок.
+На Mac команда `curl --fail --silent --show-error http://127.0.0.1:8083/api/notes` также вывела `[]`. `docker compose -p devops-lab3 --env-file .env -f lab2-docker/compose.yaml ps` показала три запущенных сервиса: frontend, backend и db. Страница открывалась по `http://127.0.0.1:8083/`. Пустой список здесь нормален: у лабораторной 3 отдельная база, в которой на тот момент ещё не было заметок.
+
+![Зелёный GitHub Actions run с успешным деплоем](screenshots/lab3-green.png)
 
 ## Команды для повторения и безопасной остановки
 
@@ -283,43 +285,14 @@ docker compose -p devops-lab3 --env-file .env -f lab2-docker/compose.yaml ps
 docker volume inspect devops-lab3_notes_data --format '{{.Name}}'
 ```
 
-Плохой workflow можно запустить вручную: Actions → **Lab 3 bad pipeline demo** → Run workflow. Для проверки Trivy выберите **Lab 3 CI/CD** → Run workflow с `scan_bad_image=true`. Отправка коммита в `main` запускает полный pipeline. Остановить только стек лабораторной 3 можно командой:
+Плохой workflow запускается вручную через Actions → **Lab 3 bad pipeline demo** → Run workflow. Для ручного прогона Trivy используется **Lab 3 CI/CD** → Run workflow с `scan_bad_image=true`. Отправка коммита в `main` запускает полный pipeline. Только стек лабораторной 3 останавливается командой:
 
 ```zsh
 docker compose -p devops-lab3 --env-file .env -f lab2-docker/compose.yaml stop
 ```
 
-Не используйте `down -v`: он удалит заметки из тома.
+Команда `down -v` удалит заметки из тома, поэтому для остановки здесь указан `stop`.
 
-## Скриншоты
+## Вывод
 
-Скриншоты прогонов GitHub Actions:
-
-**Ошибка lint:** `lint_test` завершился с ошибкой, сборка и деплой пропущены.
-
-![Красный GitHub Actions run с lint-ошибкой](screenshots/lab3-lint-red.png)
-
-**Блокировка Trivy:** `build_scan_push` завершился с ошибкой, деплой пропущен. В сводке видна сборка `Dockerfile.bad`.
-
-![Красный GitHub Actions run с блокировкой Trivy](screenshots/lab3-trivy-red.png)
-
-**Успешный прогон:** `lint_test`, `build_scan_push` и `deploy` прошли. Вывод финального `curl` приведён выше и доступен в журнале.
-
-![Зелёный GitHub Actions run с успешным деплоем](screenshots/lab3-green.png)
-
-## Проверка требований обычной лабораторной 3
-
-| Требование | Статус | Реальное подтверждение / действие |
-| --- | --- | --- |
-| Плохой и хороший работающие pipelines | PASS | Оба YAML прошли actionlint; ручной плохой [run 42860748214](https://github.com/Marselo555/DevOps_Lab_ITMO/actions/runs/42860748214) собрал образ |
-| Минимум три bad practices и исправления | PASS | Нет lint/test, кеша, Trivy в плохом; все три есть в хорошем |
-| Lint/test блокирует плохой код до деплоя | PASS | [Красный run 42859654550](https://github.com/Marselo555/DevOps_Lab_ITMO/actions/runs/42859654550): Ruff F821, downstream jobs skipped |
-| Исправленный код проходит повторную проверку | PASS | [Run 42860991565](https://github.com/Marselo555/DevOps_Lab_ITMO/actions/runs/42860991565) success |
-| Кеш, версии, минимальные permissions и секреты | PASS с оговоркой | Actions закреплены SHA; образы используют версионные теги, которые не гарантируют неизменность содержимого; секреты не в репозитории |
-| Build образа лабораторной 2 для Mac | PASS | GitHub build success; скачанный на Mac образ `arm64` |
-| Trivy до/после и блокировка CRITICAL | PASS | 15/373 → 0/2; [красный security-run](https://github.com/Marselo555/DevOps_Lab_ITMO/actions/runs/42860754501), push/deploy skipped |
-| Публикация в GHCR только после проверок | PASS | [Зелёный run](https://github.com/Marselo555/DevOps_Lab_ITMO/actions/runs/42860700694), опубликованный digest и успешный `docker pull` на Mac |
-| Self-hosted Mac runner и Docker Desktop | PASS | `macbook-devops` online; deploy job success, Docker Engine 29.9.3 |
-| Деплой именно GHCR-образа без удаления тома | PASS | Совпали image ID; `devops-lab3_notes_data` существует, в workflow нет `down -v` |
-| Финальный curl в GitHub Actions | PASS | В журнале зелёного run `GET /api/notes HTTP 200` и `[]` |
-| Скрин красного и зелёного прогонов в отчёте | PASS | Три настоящих PNG из GitHub Actions вложены выше |
+Красный прогон Ruff остановил код до сборки; красный прогон Trivy остановил образ до публикации. После исправлений [прогон `main` 42860700694](https://github.com/Marselo555/DevOps_Lab_ITMO/actions/runs/42860700694) собрал и опубликовал GHCR-образ, запустил его на Mac и получил `GET /api/notes HTTP 200`. Совпадение image ID в GHCR и контейнере подтверждает, что деплой использовал опубликованный образ. В скане хорошего образа видны 2 HIGH, а Docker-теги сами по себе не дают побайтовой неизменности.
