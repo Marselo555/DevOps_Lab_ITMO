@@ -6,7 +6,7 @@
 | --- | --- | --- | --- |
 | 0 — свой сервис | `backend/`, `frontend/` | Реализована и проверена локально | [reports/lab0.md](reports/lab0.md) |
 | 1 — Nginx | `lab1-nginx/` | Реализована и проверена локально | [reports/lab1.md](reports/lab1.md) |
-| 1★ — проверка безопасности Nginx | `reports/evidence/`, `reports/screenshots/` | Три ограниченные проверки внешнего сайта, результаты в отдельном отчёте | [reports/lab1-bonus.md](reports/lab1-bonus.md) |
+| 1★ — проверка безопасности Nginx | `reports/evidence/`, `reports/screenshots/` | Две завершённые проверки внешнего сайта и одна собственного локального Nginx | [reports/lab1-bonus.md](reports/lab1-bonus.md) |
 | 2 — Docker | `lab2-docker/` | Реализована и проверена локально | [reports/lab2.md](reports/lab2.md) |
 | 2★ — устойчивый стек | `lab2-docker/compose.bonus.yaml` | Проверена в отдельном Compose-проекте | [reports/lab2-bonus.md](reports/lab2-bonus.md) |
 | 3 — CI/CD | `.github/workflows/` | Красные и зелёный прогоны GitHub проверены, образ опубликован и развёрнут на Mac | [reports/lab3.md](reports/lab3.md) |

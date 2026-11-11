@@ -2,7 +2,7 @@
 
 ## Цель и результат
 
-Цель работы — настроить CI/CD для блокнота из лабораторной 0. Код с ошибкой и образ с CRITICAL CVE должны останавливаться до деплоя. Исправленная версия должна пройти `Lint/Test → Docker Build → Trivy Scan → Push → Deploy → Health Check`. Откат со звёздочкой не выполнялся.
+Цель работы — настроить CI/CD для блокнота из лабораторной 0. Код с ошибкой и образ с CRITICAL CVE должны останавливаться до деплоя. Исправленная версия должна пройти `Lint/Test → Docker Build → Trivy Scan → Push → Deploy → Health Check`. Откат выполнен отдельно и описан в [отчёте 3★](lab3-bonus.md).
 
 Проверки проведены 10 ноября 2026 года на Mac с архитектурой `arm64` и Docker Desktop Engine 29.9.3. Для деплоя использован self-hosted runner `macbook-devops` (macOS, ARM64). Данные лабораторных 0–2 не удалялись; после деплоя API лабораторной 2 по-прежнему отвечал HTTP 200.
 
@@ -51,7 +51,7 @@ jobs:
 
 ### Хороший: `.github/workflows/lab3-ci-cd.yml`
 
-Версии actions закреплены полными SHA, версии образов указаны явно. Права заданы для каждого задания: `contents: read`, `packages: write` только при публикации и `packages: read` при деплое. Для GHCR используется `GITHUB_TOKEN`. Пароль временной БД хранится в GitHub secret `LAB3_CI_DB_PASSWORD`, пароль локальной БД — в файле `.env`, исключённом из Git.
+Используемые GitHub Actions закреплены полными SHA. Версии образов указаны тегами: хороший Dockerfile использует `python:3.11.18-alpine3.23`, CI PostgreSQL — `postgres:16.13-alpine`, Compose — `nginx:1.28-alpine` и `postgres:16`. Это фиксирует выбранные версии или ветки версий по формулировке задания, но Docker-теги могут быть перезаписаны, а `postgres:16` допускает обновления внутри 16-й версии. Для побайтово воспроизводимой сборки нужны digest `@sha256` у базовых и сервисных образов; сейчас такой гарантии нет. Права заданы для каждого задания: `contents: read`, `packages: write` только при публикации и `packages: read` при деплое. Для GHCR используется `GITHUB_TOKEN`. Пароль временной БД хранится в GitHub secret `LAB3_CI_DB_PASSWORD`, пароль локальной БД — в файле `.env`, исключённом из Git.
 
 ```yaml
 name: Lab 3 CI/CD
@@ -218,6 +218,8 @@ jobs:
 
 Образ для `linux/arm64` собирается и сканируется на GitHub-hosted Ubuntu. На Mac runner работают `checkout` и команды shell/Docker CLI через Docker Desktop; service containers и container actions на нём не запускаются. Задание `build_scan_push` начинается после `lint_test`, а `deploy` — после `build_scan_push`. Публикация и деплой разрешены только для `main`. Ручной запуск с `scan_bad_image=true` проверяет плохой Dockerfile до публикации. Compose запускает скачанный из GHCR образ с тегом по полному SHA и флагом `--no-build`. PostgreSQL использует отдельный именованный том `devops-lab3_notes_data`; `down -v` не выполняется.
 
+`LAB3_ENV_FILE=/Users/marsel/Desktop/itmo/Cloud/.env` относится только к локальному self-hosted runner на этом Mac. Файл с паролем существует вне временного каталога `checkout` и исключён из Git; GitHub-hosted задания по этому пути не обращаются. Абсолютный путь привязывает deploy к этому Mac и его рабочей папке, но не является секретом. Для переноса runner на другую машину путь нужно задать в окружении нового runner и удалить значение по умолчанию из YAML; текущий рабочий deploy ради этого не менялся.
+
 Оба YAML прошли `actionlint:1.7.12` с кодом 0. Локальная команда `.venv/bin/ruff check backend tests` вернула `All checks passed!`; CRUD-тест с PostgreSQL лабораторной 0 завершился `Ran 1 test ... OK`. Результаты запусков в GitHub приведены выше.
 
 ## Плохой код и блокировка деплоя
@@ -287,7 +289,7 @@ docker volume inspect devops-lab3_notes_data --format '{{.Name}}'
 docker compose -p devops-lab3 --env-file .env -f lab2-docker/compose.yaml stop
 ```
 
-Не используйте `down -v`: он удалит заметки из тома. Перед сдачей прочитайте указанную в DOCX [историю про Васю](https://habr.com/ru/articles/689234/).
+Не используйте `down -v`: он удалит заметки из тома.
 
 ## Скриншоты
 
@@ -313,7 +315,7 @@ docker compose -p devops-lab3 --env-file .env -f lab2-docker/compose.yaml stop
 | Минимум три bad practices и исправления | PASS | Нет lint/test, кеша, Trivy в плохом; все три есть в хорошем |
 | Lint/test блокирует плохой код до деплоя | PASS | [Красный run 42859654550](https://github.com/Marselo555/DevOps_Lab_ITMO/actions/runs/42859654550): Ruff F821, downstream jobs skipped |
 | Исправленный код проходит повторную проверку | PASS | [Run 42860991565](https://github.com/Marselo555/DevOps_Lab_ITMO/actions/runs/42860991565) success |
-| Кеш, закреплённые версии, минимальные permissions и секреты | PASS | Проверены YAML, actionlint и GitHub логи; секреты не в репозитории |
+| Кеш, версии, минимальные permissions и секреты | PASS с оговоркой | Actions закреплены SHA; образы используют версионные теги, которые не гарантируют неизменность содержимого; секреты не в репозитории |
 | Build образа лабораторной 2 для Mac | PASS | GitHub build success; скачанный на Mac образ `arm64` |
 | Trivy до/после и блокировка CRITICAL | PASS | 15/373 → 0/2; [красный security-run](https://github.com/Marselo555/DevOps_Lab_ITMO/actions/runs/42860754501), push/deploy skipped |
 | Публикация в GHCR только после проверок | PASS | [Зелёный run](https://github.com/Marselo555/DevOps_Lab_ITMO/actions/runs/42860700694), опубликованный digest и успешный `docker pull` на Mac |

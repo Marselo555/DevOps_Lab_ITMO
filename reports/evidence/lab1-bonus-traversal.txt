@@ -1,0 +1,33 @@
+Captured: 2026-11-11T23:54:17.989861+03:00
+
+$ curl --noproxy '*' --path-as-is --silent --show-error --insecure --resolve notes.test:443:127.0.0.1 --head https://notes.test/docs/../admin
+HTTP/1.1 401 Unauthorized
+Server: nginx/1.28.3
+Date: Wed, 11 Nov 2026 20:54:18 GMT
+Content-Type: text/html
+Content-Length: 179
+Connection: keep-alive
+WWW-Authenticate: Basic realm="Admin area"
+
+exit=0
+
+$ curl --noproxy '*' --path-as-is --silent --show-error --insecure --resolve notes.test:443:127.0.0.1 --head https://notes.test/docs/%2e%2e/admin
+HTTP/1.1 401 Unauthorized
+Server: nginx/1.28.3
+Date: Wed, 11 Nov 2026 20:54:18 GMT
+Content-Type: text/html
+Content-Length: 179
+Connection: keep-alive
+WWW-Authenticate: Basic realm="Admin area"
+
+exit=0
+
+$ curl --noproxy '*' --path-as-is --silent --show-error --insecure --resolve notes.test:443:127.0.0.1 --head https://notes.test/docs/../../.env
+HTTP/1.1 400 Bad Request
+Server: nginx/1.28.3
+Date: Wed, 11 Nov 2026 20:54:18 GMT
+Content-Type: text/html
+Content-Length: 157
+Connection: close
+
+exit=0

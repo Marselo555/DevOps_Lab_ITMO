@@ -1,0 +1,18 @@
+Captured: 2026-11-11T23:54:18.291829+03:00
+
+$ docker inspect devops-lab3-backend-1 --format 'image={{.Config.Image}} id={{.Image}} status={{.State.Status}} health={{.State.Health.Status}}'
+image=ghcr.io/marselo555/devops-lab-itmo-notebook:f14be54814e080f6353b8486a0c2a99617414c88 id=sha256:d9cd1ae528c5cb271dad18eb41883230ce47b75a74435d14e80c2f9bf0d22be0 status=running health=healthy
+
+exit=0
+
+$ curl --noproxy '*' --silent --show-error --max-time 5 --include http://127.0.0.1:8083/api/notes
+HTTP/1.1 200 OK
+Server: nginx/1.28.3
+Date: Wed, 11 Nov 2026 20:54:18 GMT
+Content-Type: application/json
+Content-Length: 111
+Connection: keep-alive
+
+[{"content":"Created before the rollback demonstration on 2026-11-11","id":1,"title":"Lab 3 rollback marker"}]
+
+exit=0

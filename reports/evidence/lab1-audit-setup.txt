@@ -1,0 +1,29 @@
+Captured: 2026-11-11T23:54:18.100210+03:00
+
+$ docker exec devops-lab1-nginx nginx -t
+
+nginx: the configuration file /etc/nginx/nginx.conf syntax is ok
+nginx: configuration file /etc/nginx/nginx.conf test is successful
+exit=0
+
+$ curl --noproxy '*' --silent --show-error --head http://127.0.0.1:8001/api/notes
+HTTP/1.1 200 OK
+Server: Werkzeug/3.1.9 Python/3.9.6
+Date: Wed, 11 Nov 2026 20:54:18 GMT
+Content-Type: application/json
+Content-Length: 343
+X-Instance-ID: backend-1
+Connection: close
+
+exit=0
+
+$ curl --noproxy '*' --silent --show-error --head http://127.0.0.1:8002/api/notes
+HTTP/1.1 200 OK
+Server: Werkzeug/3.1.9 Python/3.9.6
+Date: Wed, 11 Nov 2026 20:54:18 GMT
+Content-Type: application/json
+Content-Length: 343
+X-Instance-ID: backend-2
+Connection: close
+
+exit=0
