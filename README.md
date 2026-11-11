@@ -7,6 +7,7 @@
 | 0 — свой сервис | `backend/`, `frontend/` | Реализована и проверена локально | [reports/lab0.md](reports/lab0.md) |
 | 1 — Nginx | `lab1-nginx/` | Реализована и проверена локально | [reports/lab1.md](reports/lab1.md) |
 | 2 — Docker | `lab2-docker/` | Реализована и проверена локально | [reports/lab2.md](reports/lab2.md) |
+| 2★ — устойчивый стек | `lab2-docker/compose.bonus.yaml` | Проверена в отдельном Compose-проекте | [reports/lab2-bonus.md](reports/lab2-bonus.md) |
 | 3 — CI/CD | `.github/workflows/` | Красные и зелёный прогоны GitHub проверены, образ опубликован и развёрнут на Mac | [reports/lab3.md](reports/lab3.md) |
 
 Код блокнота общий для всех лабораторных; в отдельных каталогах находятся их конфигурации и проверки.
@@ -222,7 +223,7 @@ docker compose --env-file .env -f lab2-docker/compose.yaml exec -T db \
   psql -U notebook -d notebook -c 'SELECT id, title, content FROM notes ORDER BY id;'
 ```
 
-Том `devops-lab2_notes_data` при этом сохраняется. Размеры образов, время пересборки и результаты сетевой проверки приведены в [отчёте лабораторной 2](reports/lab2.md).
+Том `devops-lab2_notes_data` при этом сохраняется. Размеры образов, время пересборки и результаты сетевой проверки приведены в [отчёте обычной лабораторной 2](reports/lab2.md). Дополнительное задание «Устойчивый стек» описано в [отдельном отчёте 2★](reports/lab2-bonus.md).
 
 ### Безопасная остановка
 
